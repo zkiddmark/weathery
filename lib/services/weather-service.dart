@@ -27,7 +27,7 @@ class WeatherResponse {
   WeatherResponse(this.name, this.temp);
 
   WeatherResponse.fromJson(Map<String, dynamic> json)
-      : temp = json['main']['temp'],
+      : temp = double.parse(json['main']['temp'].toString()),
         name = json['name'];
 }
 

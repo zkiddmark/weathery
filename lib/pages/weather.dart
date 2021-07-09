@@ -9,20 +9,30 @@ class Weather extends StatefulWidget {
 }
 
 class _WeatherState extends State<Weather> {
-  late Map<String, WeatherResponse> weatherMap = ModalRoute.of(context)!
+  late final Map<String, WeatherResponse> weatherMap = ModalRoute.of(context)!
       .settings
       .arguments as Map<String, WeatherResponse>;
 
   @override
   Widget build(BuildContext context) {
-    print(weatherMap['data']!.name);
+    var weather = weatherMap['data'] as WeatherResponse;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Weather for...'),
+        title: Text('Weather for ${weather.name}'),
       ),
-      body: Container(
-        child: Text('Weathery'),
+      body: Center(
+        child: Stack(
+          children: [
+            Image.network(
+              'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+              fit: BoxFit.cover,
+            ),
+            Center(
+              child: Text('The temperature is ${weather.temp}'),
+            )
+          ],
+        ),
       ),
     );
   }
