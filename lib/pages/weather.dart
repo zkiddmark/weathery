@@ -21,18 +21,15 @@ class _WeatherState extends State<Weather> {
         centerTitle: true,
         title: Text('Weather for ${weather.name}'),
       ),
-      body: Center(
-        child: Stack(
-          children: [
-            Image.network(
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: NetworkImage(
               'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-              fit: BoxFit.cover,
             ),
-            Center(
-              child: Text('The temperature is ${weather.temp}'),
-            )
-          ],
+          ),
         ),
+        child: Text('The temperature is ${weather.temp}'),
       ),
     );
   }

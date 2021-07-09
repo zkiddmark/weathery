@@ -22,7 +22,6 @@ class _LoadingState extends State<Loading> {
     var weather = await weatherService.getWeatherByCoordinates(
         geoService.currentPosition.latitude,
         geoService.currentPosition.longitude);
-    print(weather.temp);
 
     // Transition to Weather
     Navigator.pushReplacementNamed(context, '/weather',
