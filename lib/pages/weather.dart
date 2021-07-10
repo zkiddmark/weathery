@@ -16,6 +16,7 @@ class _WeatherState extends State<Weather> {
   @override
   Widget build(BuildContext context) {
     var weather = weatherMap['data'] as WeatherResponse;
+    print(weather.weather.first.description);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -24,12 +25,24 @@ class _WeatherState extends State<Weather> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
+            fit: BoxFit.cover,
             image: NetworkImage(
               'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
             ),
           ),
         ),
-        child: Text('The temperature is ${weather.temp}'),
+        child: Center(
+          child: Column(
+            children: [
+              Container(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                  child: Text('The temperature is ${weather.temp}'),
+                ),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
