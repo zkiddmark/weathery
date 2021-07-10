@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:weathery/services/geolocator-service.dart';
 import 'package:weathery/services/weather-service.dart';
 
 class Loading extends StatefulWidget {
@@ -10,27 +9,20 @@ class Loading extends StatefulWidget {
 }
 
 class _LoadingState extends State<Loading> {
-  late GeoLocatorService geoService;
-
-  void getLocation() async {
-    geoService = await GeoLocatorService.create();
-    await getWeather();
-  }
-
-  Future getWeather() async {
-    var weatherService = WeatherService();
-    var weather = await weatherService.getWeatherByCoordinates(
-        geoService.currentPosition.latitude,
-        geoService.currentPosition.longitude);
+  void getWeather() async {
+    var weatherService = await WeatherService.create();
+    await weatherService.getWeatherByCoordinates(
+        weatherService.geoLocatorService.currentPosition.latitude,
+        weatherService.geoLocatorService.currentPosition.longitude);
 
     // Transition to Weather
     Navigator.pushReplacementNamed(context, '/weather',
-        arguments: {'data': weather});
+        arguments: {'data': weatherService});
   }
 
   @override
   void initState() {
-    getLocation();
+    getWeather();
     super.initState();
   }
 
@@ -43,7 +35,12 @@ class _LoadingState extends State<Loading> {
         ),
       ),
       body: Container(
-        child: Text('Loading'),
+        decoration: BoxDecoration(color: Colors.blueAccent),
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Colors.orangeAccent,
+          ),
+        ),
       ),
     );
   }

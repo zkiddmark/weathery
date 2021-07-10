@@ -1,22 +1,36 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:http/http.dart' as http;
+import 'package:weathery/services/geolocator-service.dart';
 
 class WeatherService {
+  late final GeoLocatorService geoLocatorService;
+
   final String apiKey = 'c69ee9e3c9d96a1116880c95c88ddea2';
   final String baseUrl =
       'https://api.openweathermap.org/data/2.5/weather?appid=c69ee9e3c9d96a1116880c95c88ddea2&units=metric';
 
-  Future<WeatherResponse> getWeatherByCoordinates(
-      double lat, double lon) async {
+  late WeatherResponse currentWeather;
+
+  Future<void> getWeatherByCoordinates(double lat, double lon) async {
     var url = Uri.parse('$baseUrl&lat=$lat&lon=$lon');
     var response = await http.get(url);
     if (response.statusCode == 200) {
-      return WeatherResponse.fromJson(jsonDecode(response.body));
+      currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
     } else {
       throw HttpException('Unable to fetch weather!');
     }
+  }
+
+  void updateLocation() async {
+    print('Updating position');
+    await geoLocatorService.determinePosition();
+  }
+
+  static Future<WeatherService> create() async {
+    var service = WeatherService();
+    service.geoLocatorService = await GeoLocatorService.create();
+    return service;
   }
 }
 
