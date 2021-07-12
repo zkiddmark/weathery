@@ -22,9 +22,20 @@ class WeatherService {
     }
   }
 
-  void updateLocation() async {
+  Future<void> getWeatherByLocation(String location) async {
+    var url = Uri.parse('$baseUrl&q=$location');
+    var response = await http.get(url);
+    if (response.statusCode == 200) {
+      print(response.body);
+      currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
+    } else {
+      throw HttpException('Unable to fetch weather!');
+    }
+  }
+
+  void updateLocation(String location) async {
     print('Updating position');
-    await geoLocatorService.determinePosition();
+    await getWeatherByLocation(location);
   }
 
   static Future<WeatherService> create() async {

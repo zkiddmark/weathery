@@ -9,8 +9,15 @@ class Weather extends StatefulWidget {
 }
 
 class _WeatherState extends State<Weather> {
+  late WeatherResponse weather;
   late Map<String, WeatherService> weatherService =
       ModalRoute.of(context)!.settings.arguments as Map<String, WeatherService>;
+
+  void updateWeatherLocation(String location) async {
+    var ws = weatherService['data'] as WeatherService;
+    await ws.getWeatherByLocation(location);
+    setState(() => {weather = ws.currentWeather});
+  }
 
   Widget createWeatherCard(WeatherResponse weather) {
     var iconUrl =
@@ -40,20 +47,51 @@ class _WeatherState extends State<Weather> {
     );
   }
 
+  Widget _searchField(BuildContext context, Function onSubmit) {
+    var textFieldController = TextEditingController();
+    return Container(
+      height: 300,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+            child: Container(
+              decoration: BoxDecoration(color: Colors.white30),
+              child: TextField(
+                decoration: InputDecoration(
+                  icon: Icon(Icons.search),
+                  labelText: 'Enter a city name',
+                  focusColor: Colors.white70,
+                  focusedBorder: InputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber,
+                    ),
+                  ),
+                ),
+                cursorColor: Colors.red,
+                controller: textFieldController,
+                onEditingComplete: () => {
+                  updateWeatherLocation(textFieldController.text),
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    var weather = weatherService['data'] as WeatherService;
+    var ws = weatherService['data'] as WeatherService;
+    weather = ws.currentWeather;
+    // print(weather.name);
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text('Weather for ${weather.currentWeather.name}'),
-          actions: [
-            IconButton(
-              onPressed: () async =>
-                  {await weather.geoLocatorService.determinePosition()},
-              icon: Icon(Icons.pin_drop_outlined),
-            ),
-          ],
+          title: Text('Weather for ${weather.name}'),
         ),
         body: Container(
           decoration: BoxDecoration(
@@ -64,8 +102,15 @@ class _WeatherState extends State<Weather> {
               ),
             ),
           ),
-          child: Center(
-            child: createWeatherCard(weather.currentWeather),
+          child: Column(
+            children: [
+              Center(
+                child: _searchField(context, ws.updateLocation),
+              ),
+              Center(
+                child: createWeatherCard(weather),
+              ),
+            ],
           ),
         ));
   }
