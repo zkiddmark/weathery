@@ -49,8 +49,9 @@ class WeatherResponse {
   final String name;
   final double temp;
   final List<Weather> weather;
+  final Wind wind;
 
-  WeatherResponse(this.name, this.temp, this.weather);
+  WeatherResponse(this.name, this.temp, this.weather, this.wind);
 
   factory WeatherResponse.fromJson(Map<String, dynamic> json) {
     var parsedWeatherList = json['weather'] as List<dynamic>;
@@ -59,7 +60,8 @@ class WeatherResponse {
         json['name'],
         double.parse(json['main']['temp'].toString()),
         // weather: Weather.fromJson(json['weather']);
-        parsedWeatherList.map((e) => Weather.fromJson(e)).toList());
+        parsedWeatherList.map((e) => Weather.fromJson(e)).toList(),
+        Wind.fromJson(json['wind']));
   }
 }
 
@@ -74,16 +76,16 @@ class Weather {
         main = json['main'],
         description = json['description'],
         icon = json['icon'];
-  // Weather.fromJson(List<dynamic> arr) {
-  //   arr.forEach((json) {
-  //     id = json['id'];
-  //     main = json['main'];
-  //     description = json['description'];
-  //     icon = json['icon'];
-  //   });
-  // }
 }
 
+class Wind {
+  late final double speed;
+  late final int deg;
+
+  Wind.fromJson(Map<String, dynamic> json)
+      : speed = json['speed'],
+        deg = json['deg'];
+}
 
 /*
 {

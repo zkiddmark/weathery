@@ -18,6 +18,7 @@ class _WeatherState extends State<Weather> {
   void updateWeatherLocation(String location) async {
     var ws = weatherService['data'] as WeatherService;
     await ws.getWeatherByLocation(location);
+    _textEditingController.clear();
     setState(() => {weather = ws.currentWeather});
   }
 
@@ -45,8 +46,18 @@ class _WeatherState extends State<Weather> {
             Divider(
               color: Colors.black26,
             ),
-            Text('The temperature is ${weather.temp}'),
-            Text(weather.weather.first.description),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(
+                  children: [
+                    Text('The temperature is ${weather.temp}'),
+                    Text(weather.weather.first.description),
+                  ],
+                ),
+                _windDirection(weather.wind.deg),
+              ],
+            ),
             Padding(
               padding: EdgeInsets.all(10.0),
             ),
@@ -96,10 +107,13 @@ class _WeatherState extends State<Weather> {
     );
   }
 
-  _windDirection(double angle) {
+  _windDirection(int angle) {
     return Transform.rotate(
       angle: angle * math.pi / 180,
-      child: Icon(Icons.arrow_upward),
+      child: Icon(
+        Icons.arrow_upward,
+        color: Colors.black,
+      ),
     );
   }
 
@@ -118,7 +132,6 @@ class _WeatherState extends State<Weather> {
         children: [
           _searchField(context),
           _createWeatherCard(weather),
-          _windDirection(293),
         ],
       ),
     );
