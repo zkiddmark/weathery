@@ -1,35 +1,60 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:weathery/models/weathermodel.dart';
 import 'package:weathery/services/geolocator-service.dart';
 
 class WeatherService {
   late final GeoLocatorService geoLocatorService;
 
   final String apiKey = 'c69ee9e3c9d96a1116880c95c88ddea2';
-  final String baseUrl =
-      'https://api.openweathermap.org/data/2.5/weather?appid=c69ee9e3c9d96a1116880c95c88ddea2&units=metric';
+  // final String baseUrl =
+  //     'https://api.openweathermap.org/data/2.5/weather?appid=c69ee9e3c9d96a1116880c95c88ddea2&units=metric';
 
   late WeatherResponse currentWeather;
+  late WeatherForecastResponse forecast;
 
   Future<void> getWeatherByCoordinates(double lat, double lon) async {
-    var url = Uri.parse('$baseUrl&lat=$lat&lon=$lon');
+    var url = Uri.parse(
+        'https://api.openweathermap.org/data/2.5/weather?appid=$apiKey&units=metric&lat=$lat&lon=$lon');
     var response = await http.get(url);
     if (response.statusCode == 200) {
       currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
+      await getWeatherForecast(currentWeather.lat, currentWeather.lon);
     } else {
       throw HttpException('Unable to fetch weather!');
     }
   }
 
   Future<void> getWeatherByLocation(String location) async {
-    var url = Uri.parse('$baseUrl&q=$location');
+    var url = Uri.parse(
+        'https://api.openweathermap.org/data/2.5/weather?appid=c69ee9e3c9d96a1116880c95c88ddea2&units=metric&q=$location');
+    print(url);
     var response = await http.get(url);
     if (response.statusCode == 200) {
       print(response.body);
       currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
+      await getWeatherForecast(currentWeather.lat, currentWeather.lon);
     } else {
-      throw HttpException('Unable to fetch weather!');
+      throw HttpException(
+          'Unable to fetch weather!, Status: ${response.statusCode}',
+          uri: url);
+    }
+  }
+
+  Future<void> getWeatherForecast(double lat, double lon) async {
+    var url = Uri.parse(
+        'https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&exclude=hourly,minutely,current&appid=$apiKey');
+    print(url);
+    var response = await http.get(url);
+    if (response.statusCode == 200) {
+      print(response.body);
+      currentWeather.forecast =
+          WeatherForecastResponse.fromJson(jsonDecode(response.body));
+    } else {
+      throw HttpException(
+          'Unable to fetch forecast!, Status: ${response.statusCode}',
+          uri: url);
     }
   }
 
@@ -45,47 +70,47 @@ class WeatherService {
   }
 }
 
-class WeatherResponse {
-  final String name;
-  final double temp;
-  final List<Weather> weather;
-  final Wind wind;
+// class WeatherResponse {
+//   final String name;
+//   final double temp;
+//   final List<Weather> weather;
+//   final Wind wind;
 
-  WeatherResponse(this.name, this.temp, this.weather, this.wind);
+//   WeatherResponse(this.name, this.temp, this.weather, this.wind);
 
-  factory WeatherResponse.fromJson(Map<String, dynamic> json) {
-    var parsedWeatherList = json['weather'] as List<dynamic>;
+//   factory WeatherResponse.fromJson(Map<String, dynamic> json) {
+//     var parsedWeatherList = json['weather'] as List<dynamic>;
 
-    return WeatherResponse(
-        json['name'],
-        double.parse(json['main']['temp'].toString()),
-        // weather: Weather.fromJson(json['weather']);
-        parsedWeatherList.map((e) => Weather.fromJson(e)).toList(),
-        Wind.fromJson(json['wind']));
-  }
-}
+//     return WeatherResponse(
+//         json['name'],
+//         double.parse(json['main']['temp'].toString()),
+//         // weather: Weather.fromJson(json['weather']);
+//         parsedWeatherList.map((e) => Weather.fromJson(e)).toList(),
+//         Wind.fromJson(json['wind']));
+//   }
+// }
 
-class Weather {
-  late final int id;
-  late final String main;
-  late final String description;
-  late final String icon;
+// class Weather {
+//   late final int id;
+//   late final String main;
+//   late final String description;
+//   late final String icon;
 
-  Weather.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        main = json['main'],
-        description = json['description'],
-        icon = json['icon'];
-}
+//   Weather.fromJson(Map<String, dynamic> json)
+//       : id = json['id'],
+//         main = json['main'],
+//         description = json['description'],
+//         icon = json['icon'];
+// }
 
-class Wind {
-  late final double speed;
-  late final int deg;
+// class Wind {
+//   late final double speed;
+//   late final int deg;
 
-  Wind.fromJson(Map<String, dynamic> json)
-      : speed = json['speed'],
-        deg = json['deg'];
-}
+//   Wind.fromJson(Map<String, dynamic> json)
+//       : speed = json['speed'],
+//         deg = json['deg'];
+// }
 
 /*
 {

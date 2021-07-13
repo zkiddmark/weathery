@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:weathery/services/weather-service.dart';
 
@@ -11,13 +13,17 @@ class Loading extends StatefulWidget {
 class _LoadingState extends State<Loading> {
   void getWeather() async {
     var weatherService = await WeatherService.create();
-    await weatherService.getWeatherByCoordinates(
-        weatherService.geoLocatorService.currentPosition.latitude,
-        weatherService.geoLocatorService.currentPosition.longitude);
-
-    // Transition to Weather
-    Navigator.pushReplacementNamed(context, '/weather',
-        arguments: {'data': weatherService});
+    try {
+      await weatherService.getWeatherByCoordinates(
+          weatherService.geoLocatorService.currentPosition.latitude,
+          weatherService.geoLocatorService.currentPosition.longitude);
+      // Transition to Weather
+      Navigator.pushReplacementNamed(context, '/weather',
+          arguments: {'data': weatherService});
+    } catch (e) {
+      var ex = e as HttpException;
+      print(ex.message);
+    }
   }
 
   @override

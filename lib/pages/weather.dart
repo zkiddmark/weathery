@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:weathery/models/weathermodel.dart';
+import 'package:weathery/pages/widgets/forecast.dart';
 import 'package:weathery/services/weather-service.dart';
 import 'dart:math' as math;
 
@@ -67,6 +69,19 @@ class _WeatherState extends State<Weather> {
     );
   }
 
+  // _createForecastCard(WeatherForecastResponse forecast) {
+  //   return ListView.builder(
+  //     itemCount: forecast.forecast.length,
+  //     shrinkWrap: true,
+  //     itemBuilder: (context, index) {
+  //       return Card(
+  //         key: UniqueKey(),
+  //         child: Text(forecast.forecast[index].weather.first.description),
+  //       );
+  //     },
+  //   );
+  // }
+
   _searchField(BuildContext context) {
     return Container(
       child: Container(
@@ -118,21 +133,26 @@ class _WeatherState extends State<Weather> {
   }
 
   _body() {
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          fit: BoxFit.cover,
-          image: NetworkImage(
-            'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+    return SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: NetworkImage(
+              'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+            ),
           ),
         ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          _searchField(context),
-          _createWeatherCard(weather),
-        ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _searchField(context),
+            _createWeatherCard(weather),
+            WeatherForecast(
+              weatherForecastResponse: weather.forecast,
+            ),
+          ],
+        ),
       ),
     );
   }
