@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:weathery/models/weathermodel.dart';
 import 'package:intl/intl.dart';
+import 'package:weathery/pages/widgets/wind-direction.dart';
 
 class WeatherForecast extends StatelessWidget {
   // const WeatherForecast({ Key? key }) : super(key: key);
@@ -19,12 +20,13 @@ class WeatherForecast extends StatelessWidget {
         : 'local';
 
     return Container(
+      margin: EdgeInsets.fromLTRB(10, 10, 10, 0),
       decoration: BoxDecoration(
         color: Colors.white,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         key: UniqueKey(),
         children: [
           Column(
@@ -42,6 +44,19 @@ class WeatherForecast extends StatelessWidget {
                   width: 50,
                   height: 50,
                 ),
+          WindDirection(angle: todaysWeather.windDeg),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Min Temp: ${todaysWeather.temp.min}'),
+              Text('Max Temp: ${todaysWeather.temp.max}'),
+              Text('Morning Temp: ${todaysWeather.temp.morn}'),
+              Text('Day Temp: ${todaysWeather.temp.day}'),
+              Text('Evening Temp: ${todaysWeather.temp.eve}'),
+              Text('Night Temp: ${todaysWeather.temp.night}'),
+            ],
+          )
         ],
       ),
     );
@@ -49,7 +64,7 @@ class WeatherForecast extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Expanded(
       child: ListView.builder(
         itemCount: weatherForecastResponse.forecast.length,
         shrinkWrap: true,

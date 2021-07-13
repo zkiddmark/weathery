@@ -44,7 +44,7 @@ class WeatherService {
 
   Future<void> getWeatherForecast(double lat, double lon) async {
     var url = Uri.parse(
-        'https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&exclude=hourly,minutely,current&appid=$apiKey');
+        'https://api.openweathermap.org/data/2.5/onecall?lat=$lat&lon=$lon&exclude=hourly,minutely,current&appid=$apiKey&units=metric');
     print(url);
     var response = await http.get(url);
     if (response.statusCode == 200) {

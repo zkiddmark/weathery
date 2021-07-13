@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:weathery/models/weathermodel.dart';
 import 'package:weathery/pages/widgets/forecast.dart';
+import 'package:weathery/pages/widgets/wind-direction.dart';
 import 'package:weathery/services/weather-service.dart';
 import 'dart:math' as math;
 
@@ -29,42 +30,36 @@ class _WeatherState extends State<Weather> {
     var iconUrl = weather.weather.first.icon != null
         ? 'http://openweathermap.org/img/wn/${weather.weather.first.icon}@2x.png'
         : 'local';
-    return Padding(
-      padding: EdgeInsets.all(10.0),
-      child: Card(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                iconUrl == 'local'
-                    ? Icon(Icons.circle)
-                    : Image.network(
-                        iconUrl,
-                      ),
-              ],
-            ),
-            Divider(
-              color: Colors.black26,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Column(
-                  children: [
-                    Text('The temperature is ${weather.temp}'),
-                    Text(weather.weather.first.description),
-                  ],
-                ),
-                _windDirection(weather.wind.deg),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.all(10.0),
-            ),
-          ],
-        ),
+    return Card(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              iconUrl == 'local'
+                  ? Icon(Icons.circle)
+                  : Image.network(
+                      iconUrl,
+                    ),
+            ],
+          ),
+          Divider(
+            color: Colors.black26,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  Text('The temperature is ${weather.temp}'),
+                  Text(weather.weather.first.description),
+                ],
+              ),
+              WindDirection(angle: weather.wind.deg),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -84,65 +79,52 @@ class _WeatherState extends State<Weather> {
 
   _searchField(BuildContext context) {
     return Container(
-      child: Container(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
-          child: TextField(
-            decoration: InputDecoration(
-              icon: Icon(
-                Icons.search,
-                color: Colors.white,
-              ),
-              labelText: 'Enter a city name',
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              labelStyle: TextStyle(
-                color: Colors.white,
-              ),
-            ),
-            style: TextStyle(
+      margin: EdgeInsets.all(10),
+      child: TextField(
+        decoration: InputDecoration(
+          icon: Icon(
+            Icons.search,
+            color: Colors.white,
+          ),
+          labelText: 'Enter a city name',
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
               color: Colors.white,
             ),
-            cursorColor: Colors.red,
-            controller: _textEditingController,
-            onEditingComplete: () => {
-              updateWeatherLocation(_textEditingController.text),
-            },
+          ),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: Colors.white,
+            ),
+          ),
+          labelStyle: TextStyle(
+            color: Colors.white,
           ),
         ),
-      ),
-    );
-  }
-
-  _windDirection(int angle) {
-    return Transform.rotate(
-      angle: angle * math.pi / 180,
-      child: Icon(
-        Icons.arrow_upward,
-        color: Colors.black,
+        style: TextStyle(
+          color: Colors.white,
+        ),
+        cursorColor: Colors.red,
+        controller: _textEditingController,
+        onEditingComplete: () => {
+          updateWeatherLocation(_textEditingController.text),
+        },
       ),
     );
   }
 
   _body() {
-    return SingleChildScrollView(
-      child: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: NetworkImage(
-              'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          fit: BoxFit.cover,
+          image: NetworkImage(
+            'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
           ),
         ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -170,22 +152,13 @@ class _WeatherState extends State<Weather> {
         }
       },
       child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          appBar: AppBar(
-            centerTitle: true,
-            title: Text('Weather for ${weather.name}'),
-          ),
-          body: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: NetworkImage(
-                  'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-                ),
-              ),
-            ),
-            child: _body(),
-          )),
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text('Weather for ${weather.name}'),
+        ),
+        body: _body(),
+      ),
     );
   }
 
