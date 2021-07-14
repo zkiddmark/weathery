@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:weathery/models/weathermodel.dart';
 import 'package:weathery/pages/widgets/forecast.dart';
-import 'package:weathery/pages/widgets/wind-direction.dart';
 import 'package:weathery/services/weather-service.dart';
-import 'dart:math' as math;
 
 class Weather extends StatefulWidget {
   const Weather({Key? key}) : super(key: key);
@@ -18,6 +16,8 @@ class _WeatherState extends State<Weather> {
       ModalRoute.of(context)!.settings.arguments as Map<String, WeatherService>;
 
   TextEditingController _textEditingController = TextEditingController();
+  FocusNode _focusNode = FocusNode();
+
   void updateWeatherLocation(String location) async {
     var ws = weatherService['data'] as WeatherService;
     await ws.getWeatherByLocation(location);
@@ -25,62 +25,11 @@ class _WeatherState extends State<Weather> {
     setState(() => {weather = ws.currentWeather});
   }
 
-  _createWeatherCard(WeatherResponse weather) {
-    // ignore: unnecessary_null_comparison
-    var iconUrl = weather.weather.first.icon != null
-        ? 'http://openweathermap.org/img/wn/${weather.weather.first.icon}@2x.png'
-        : 'local';
-    return Card(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              iconUrl == 'local'
-                  ? Icon(Icons.circle)
-                  : Image.network(
-                      iconUrl,
-                    ),
-            ],
-          ),
-          Divider(
-            color: Colors.black26,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Column(
-                children: [
-                  Text('The temperature is ${weather.temp}'),
-                  Text(weather.weather.first.description),
-                ],
-              ),
-              WindDirection(angle: weather.wind.deg),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // _createForecastCard(WeatherForecastResponse forecast) {
-  //   return ListView.builder(
-  //     itemCount: forecast.forecast.length,
-  //     shrinkWrap: true,
-  //     itemBuilder: (context, index) {
-  //       return Card(
-  //         key: UniqueKey(),
-  //         child: Text(forecast.forecast[index].weather.first.description),
-  //       );
-  //     },
-  //   );
-  // }
-
   _searchField(BuildContext context) {
     return Container(
       margin: EdgeInsets.all(10),
       child: TextField(
+        focusNode: _focusNode,
         decoration: InputDecoration(
           icon: Icon(
             Icons.search,
@@ -108,6 +57,7 @@ class _WeatherState extends State<Weather> {
         controller: _textEditingController,
         onEditingComplete: () => {
           updateWeatherLocation(_textEditingController.text),
+          _focusNode.unfocus()
         },
       ),
     );
@@ -129,9 +79,10 @@ class _WeatherState extends State<Weather> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             _searchField(context),
-            _createWeatherCard(weather),
-            WeatherForecast(
-              weatherForecastResponse: weather.forecast,
+            Expanded(
+              child: WeatherForecast(
+                weatherForecastResponse: weather.forecast,
+              ),
             ),
           ],
         ),
@@ -165,6 +116,7 @@ class _WeatherState extends State<Weather> {
   @override
   void dispose() {
     _textEditingController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 }

@@ -61,29 +61,39 @@ class Weather {
 class Wind {
   late final double speed;
   late final int deg;
+  late final double gust;
 
   Wind.fromJson(Map<String, dynamic> json)
       : speed = json['speed'],
-        deg = json['deg'];
+        deg = json['deg'],
+        gust = json['gust'] ?? 0.0;
 }
 
 class DailyWeather {
   late final DateTime dt;
   late final DateTime sunrise;
+  late final DateTime sunset;
   late final DailyTemp temp;
+  late final DailyTemp feelsLike;
   late final double windSpeed;
   late final int windDeg;
   late final double windGust;
   late final List<Weather> weather;
+  late final double rain;
+  late final int clouds;
 
   DailyWeather.fromJson(Map<String, dynamic> json)
       : dt = DateTimeExtensions.fromUnixTimeStampToUtc(json['dt']),
         sunrise = DateTimeExtensions.fromUnixTimeStampToUtc(json['sunrise']),
+        sunset = DateTimeExtensions.fromUnixTimeStampToUtc(json['sunset']),
         temp = DailyTemp.fromJson(json['temp']),
+        feelsLike = DailyTemp.fromJson(json['feels_like']),
         windSpeed = double.parse(json['wind_speed'].toString()),
         windDeg = json['wind_deg'],
-        windGust = json['wind_gust'],
-        weather = Weather.fromDynamic(json['weather']);
+        windGust = double.parse(json['wind_gust'].toString()),
+        weather = Weather.fromDynamic(json['weather']),
+        rain = json['rain'] ?? 0.0,
+        clouds = json['clouds'];
 
   static List<DailyWeather> fromDynamic(List<dynamic> json) {
     return json.map((e) => DailyWeather.fromJson(e)).toList();

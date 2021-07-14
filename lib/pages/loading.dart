@@ -21,6 +21,7 @@ class _LoadingState extends State<Loading> {
       Navigator.pushReplacementNamed(context, '/weather',
           arguments: {'data': weatherService});
     } catch (e) {
+      print(e);
       var ex = e as HttpException;
       print(ex.message);
     }
