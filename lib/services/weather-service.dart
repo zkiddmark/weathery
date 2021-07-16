@@ -21,8 +21,13 @@ class WeatherService {
     if (response.statusCode == 200) {
       currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
       await getWeatherForecast(currentWeather.lat, currentWeather.lon);
+    } else if (response.statusCode >= 300) {
+      throw HttpException(
+          'Unable to fetch weather!, Status: ${response.statusCode}',
+          uri: url);
     } else {
-      throw HttpException('Unable to fetch weather!');
+      throw Exception(
+          'There was a unexpected error while fetching weatherdata.');
     }
   }
 
@@ -35,10 +40,13 @@ class WeatherService {
       print(response.body);
       currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
       await getWeatherForecast(currentWeather.lat, currentWeather.lon);
-    } else {
+    } else if (response.statusCode >= 300) {
       throw HttpException(
           'Unable to fetch weather!, Status: ${response.statusCode}',
           uri: url);
+    } else {
+      throw Exception(
+          'There was a unexpected error while fetching weatherdata.');
     }
   }
 
@@ -51,10 +59,13 @@ class WeatherService {
       print(response.body);
       currentWeather.forecast =
           WeatherForecastResponse.fromJson(jsonDecode(response.body));
-    } else {
+    } else if (response.statusCode >= 300) {
       throw HttpException(
-          'Unable to fetch forecast!, Status: ${response.statusCode}',
+          'Unable to fetch weather!, Status: ${response.statusCode}',
           uri: url);
+    } else {
+      throw Exception(
+          'There was a unexpected error while fetching weatherdata.');
     }
   }
 

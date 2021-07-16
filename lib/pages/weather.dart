@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:weathery/models/weathermodel.dart';
 import 'package:weathery/pages/widgets/forecast.dart';
@@ -20,9 +22,19 @@ class _WeatherState extends State<Weather> {
 
   void updateWeatherLocation(String location) async {
     var ws = weatherService['data'] as WeatherService;
-    await ws.getWeatherByLocation(location);
-    _textEditingController.clear();
-    setState(() => {weather = ws.currentWeather});
+    try {
+      await ws.getWeatherByLocation(location);
+      _textEditingController.clear();
+      setState(() => {weather = ws.currentWeather});
+    } catch (e) {
+      var text = e is HttpException ? e.message : 'Something went wrong';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   _searchField(BuildContext context) {
