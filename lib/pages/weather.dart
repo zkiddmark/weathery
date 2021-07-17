@@ -13,7 +13,7 @@ class Weather extends StatefulWidget {
 }
 
 class _WeatherState extends State<Weather> {
-  late WeatherResponse weather;
+  late WeatherForecastResponse weather;
   late Map<String, WeatherService> weatherService =
       ModalRoute.of(context)!.settings.arguments as Map<String, WeatherService>;
 
@@ -23,10 +23,12 @@ class _WeatherState extends State<Weather> {
   void updateWeatherLocation(String location) async {
     var ws = weatherService['data'] as WeatherService;
     try {
-      await ws.getWeatherByLocation(location);
+      // await ws.getWeatherByLocation(location);
+      await ws.getCoordinatesByLocation(location);
       _textEditingController.clear();
-      setState(() => {weather = ws.currentWeather});
+      setState(() => {weather = ws.forecast});
     } catch (e) {
+      print(e);
       var text = e is HttpException ? e.message : 'Something went wrong';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -93,7 +95,7 @@ class _WeatherState extends State<Weather> {
             _searchField(context),
             Expanded(
               child: WeatherForecast(
-                weatherForecastResponse: weather.forecast,
+                weatherForecastResponse: weather,
               ),
             ),
           ],
@@ -105,7 +107,7 @@ class _WeatherState extends State<Weather> {
   @override
   Widget build(BuildContext context) {
     var ws = weatherService['data'] as WeatherService;
-    weather = ws.currentWeather;
+    weather = ws.forecast;
     return GestureDetector(
       // This is to enable the keyboard to disappear when tapping outside of it.
       onTap: () {
@@ -118,7 +120,7 @@ class _WeatherState extends State<Weather> {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           centerTitle: true,
-          title: Text('Weather for ${weather.name}'),
+          title: Text('Weather for ${ws.geoCoding.name}'),
         ),
         body: _body(),
       ),

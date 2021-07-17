@@ -11,44 +11,90 @@ class WeatherService {
   // final String baseUrl =
   //     'https://api.openweathermap.org/data/2.5/weather?appid=c69ee9e3c9d96a1116880c95c88ddea2&units=metric';
 
-  late WeatherResponse currentWeather;
+  // late WeatherResponse currentWeather;
   late WeatherForecastResponse forecast;
 
-  Future<void> getWeatherByCoordinates(double lat, double lon) async {
+  late GeocodinResponse geoCoding;
+
+  Future<void> getCoordinatesByLocation(String location,
+      {int limit = 1}) async {
     var url = Uri.parse(
-        'https://api.openweathermap.org/data/2.5/weather?appid=$apiKey&units=metric&lat=$lat&lon=$lon');
+        'http://api.openweathermap.org/geo/1.0/direct?q=$location&limit=$limit&appid=$apiKey');
     var response = await http.get(url);
     if (response.statusCode == 200) {
-      currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
-      await getWeatherForecast(currentWeather.lat, currentWeather.lon);
+      var res = jsonDecode(response.body) as List<dynamic>;
+      geoCoding = GeocodinResponse.fromJson(res.first);
+      print(geoCoding);
+      await getWeatherForecast(geoCoding.lat, geoCoding.lon);
     } else if (response.statusCode >= 300) {
       throw HttpException(
-          'Unable to fetch weather!, Status: ${response.statusCode}',
+          'Unable to fetch GeoLocations!, Status: ${response.statusCode}',
           uri: url);
     } else {
-      throw Exception(
-          'There was a unexpected error while fetching weatherdata.');
+      throw Exception('There was a unexpected error while fetching geodata.');
     }
   }
 
-  Future<void> getWeatherByLocation(String location) async {
+  Future<void> getLocationByGeoServiceCoordinates() async {
+    await getLocationByCoordinates(geoLocatorService.currentPosition.latitude,
+        geoLocatorService.currentPosition.longitude);
+  }
+
+  Future<void> getLocationByCoordinates(double lat, double lon,
+      {int limit = 1}) async {
     var url = Uri.parse(
-        'https://api.openweathermap.org/data/2.5/weather?appid=c69ee9e3c9d96a1116880c95c88ddea2&units=metric&q=$location');
-    print(url);
+        'http://api.openweathermap.org/geo/1.0/reverse?lat=$lat&lon=$lon&limit=$limit&appid=$apiKey');
+
     var response = await http.get(url);
     if (response.statusCode == 200) {
-      print(response.body);
-      currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
-      await getWeatherForecast(currentWeather.lat, currentWeather.lon);
+      var res = jsonDecode(response.body) as List<dynamic>;
+      geoCoding = GeocodinResponse.fromJson(res.first);
+      print(geoCoding);
+      await getWeatherForecast(geoCoding.lat, geoCoding.lon);
     } else if (response.statusCode >= 300) {
       throw HttpException(
-          'Unable to fetch weather!, Status: ${response.statusCode}',
+          'Unable to fetch GeoLocations!, Status: ${response.statusCode}',
           uri: url);
     } else {
-      throw Exception(
-          'There was a unexpected error while fetching weatherdata.');
+      throw Exception('There was a unexpected error while fetching geodata.');
     }
   }
+
+  // Future<void> getWeatherByCoordinates(double lat, double lon) async {
+  //   var url = Uri.parse(
+  //       'https://api.openweathermap.org/data/2.5/weather?appid=$apiKey&units=metric&lat=$lat&lon=$lon');
+  //   var response = await http.get(url);
+  //   if (response.statusCode == 200) {
+  //     currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
+  //     await getWeatherForecast(currentWeather.lat, currentWeather.lon);
+  //   } else if (response.statusCode >= 300) {
+  //     throw HttpException(
+  //         'Unable to fetch weather!, Status: ${response.statusCode}',
+  //         uri: url);
+  //   } else {
+  //     throw Exception(
+  //         'There was a unexpected error while fetching weatherdata.');
+  //   }
+  // }
+
+  // Future<void> getWeatherByLocation(String location) async {
+  //   var url = Uri.parse(
+  //       'https://api.openweathermap.org/data/2.5/weather?appid=c69ee9e3c9d96a1116880c95c88ddea2&units=metric&q=$location');
+  //   print(url);
+  //   var response = await http.get(url);
+  //   if (response.statusCode == 200) {
+  //     print(response.body);
+  //     currentWeather = WeatherResponse.fromJson(jsonDecode(response.body));
+  //     await getWeatherForecast(currentWeather.lat, currentWeather.lon);
+  //   } else if (response.statusCode >= 300) {
+  //     throw HttpException(
+  //         'Unable to fetch weather!, Status: ${response.statusCode}',
+  //         uri: url);
+  //   } else {
+  //     throw Exception(
+  //         'There was a unexpected error while fetching weatherdata.');
+  //   }
+  // }
 
   Future<void> getWeatherForecast(double lat, double lon) async {
     var url = Uri.parse(
@@ -57,8 +103,7 @@ class WeatherService {
     var response = await http.get(url);
     if (response.statusCode == 200) {
       print(response.body);
-      currentWeather.forecast =
-          WeatherForecastResponse.fromJson(jsonDecode(response.body));
+      forecast = WeatherForecastResponse.fromJson(jsonDecode(response.body));
     } else if (response.statusCode >= 300) {
       throw HttpException(
           'Unable to fetch weather!, Status: ${response.statusCode}',
@@ -69,10 +114,10 @@ class WeatherService {
     }
   }
 
-  void updateLocation(String location) async {
-    print('Updating position');
-    await getWeatherByLocation(location);
-  }
+  // void updateLocation(String location) async {
+  //   print('Updating position');
+  //   await getWeatherByLocation(location);
+  // }
 
   static Future<WeatherService> create() async {
     var service = WeatherService();

@@ -14,9 +14,9 @@ class _LoadingState extends State<Loading> {
   void getWeather() async {
     var weatherService = await WeatherService.create();
     try {
-      await weatherService.getWeatherByCoordinates(
-          weatherService.geoLocatorService.currentPosition.latitude,
-          weatherService.geoLocatorService.currentPosition.longitude);
+      await weatherService.getLocationByGeoServiceCoordinates();
+      await weatherService.getWeatherForecast(
+          weatherService.geoCoding.lat, weatherService.geoCoding.lon);
       // Transition to Weather
       Navigator.pushReplacementNamed(context, '/weather',
           arguments: {'data': weatherService});

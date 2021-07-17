@@ -1,29 +1,17 @@
 import 'package:weathery/utils/datetimeextensions.dart';
 import 'package:weathery/utils/stringextensions.dart';
 
-class WeatherResponse {
+class GeocodinResponse {
   final String name;
+  final String country;
   final double lat;
   final double lon;
-  final double temp;
-  final List<Weather> weather;
-  final Wind wind;
-  late final WeatherForecastResponse forecast;
 
-  WeatherResponse(
-      this.name, this.temp, this.weather, this.wind, this.lat, this.lon);
-
-  factory WeatherResponse.fromJson(Map<String, dynamic> json) {
-    var parsedWeatherList = json['weather'] as List<dynamic>;
-
-    return WeatherResponse(
-        json['name'],
-        double.parse(json['main']['temp'].toString()),
-        parsedWeatherList.map((e) => Weather.fromJson(e)).toList(),
-        Wind.fromJson(json['wind']),
-        json['coord']['lat'],
-        json['coord']['lon']);
-  }
+  GeocodinResponse.fromJson(Map<String, dynamic> json)
+      : name = json['name'],
+        country = json['country'],
+        lat = json['lat'],
+        lon = json['lon'];
 }
 
 class WeatherForecastResponse {
