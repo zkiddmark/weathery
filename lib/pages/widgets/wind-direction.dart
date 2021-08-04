@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 class WindDirection extends StatelessWidget {
-  final int angle;
+  final double angle;
   final double windSpeed;
   final double windGust;
 

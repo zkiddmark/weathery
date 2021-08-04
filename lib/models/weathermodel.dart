@@ -1,17 +1,17 @@
 import 'package:weathery/utils/datetimeextensions.dart';
 import 'package:weathery/utils/stringextensions.dart';
 
-class GeocodinResponse {
+class GeocodingResponse {
   final String name;
   final String country;
   final double lat;
   final double lon;
 
-  GeocodinResponse.fromJson(Map<String, dynamic> json)
+  GeocodingResponse.fromJson(Map<String, dynamic> json)
       : name = json['name'],
         country = json['country'],
-        lat = json['lat'],
-        lon = json['lon'];
+        lat = double.parse(json['lat'].toString()),
+        lon = double.parse(json['lon'].toString());
 }
 
 class WeatherForecastResponse {
@@ -48,12 +48,12 @@ class Weather {
 
 class Wind {
   late final double speed;
-  late final int deg;
+  late final double deg;
   late final double gust;
 
   Wind.fromJson(Map<String, dynamic> json)
       : speed = double.parse(json['speed'].toString()),
-        deg = json['deg'],
+        deg = double.parse(json['deg'].toString()),
         gust = json['gust'] ?? 0.0;
 }
 
@@ -64,11 +64,11 @@ class DailyWeather {
   late final DailyTemp temp;
   late final DailyTemp feelsLike;
   late final double windSpeed;
-  late final int windDeg;
+  late final double windDeg;
   late final double windGust;
   late final List<Weather> weather;
   late final double rain;
-  late final int clouds;
+  late final double clouds;
 
   DailyWeather.fromJson(Map<String, dynamic> json)
       : dt = DateTimeExtensions.fromUnixTimeStampToUtc(json['dt']),
@@ -77,11 +77,11 @@ class DailyWeather {
         temp = DailyTemp.fromJson(json['temp']),
         feelsLike = DailyTemp.fromJson(json['feels_like']),
         windSpeed = double.parse(json['wind_speed'].toString()),
-        windDeg = json['wind_deg'],
+        windDeg = double.parse(json['wind_deg'].toString()),
         windGust = double.parse(json['wind_gust'].toString()),
         weather = Weather.fromDynamic(json['weather']),
-        rain = json['rain'] ?? 0.0,
-        clouds = json['clouds'];
+        rain = double.tryParse(json['rain'].toString()) ?? 0.0,
+        clouds = double.parse(json['clouds'].toString());
 
   static List<DailyWeather> fromDynamic(List<dynamic> json) {
     return json.map((e) => DailyWeather.fromJson(e)).toList();

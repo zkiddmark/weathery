@@ -6,10 +6,12 @@ import 'package:weathery/pages/widgets/wind-direction.dart';
 import 'package:weathery/utils/stringextensions.dart';
 
 class WeatherForecast extends StatefulWidget {
-  // const WeatherForecast({ Key? key }) : super(key: key);
-  final WeatherForecastResponse weatherForecastResponse;
+  const WeatherForecast({Key? key, required this.weatherForecastResponse})
+      : super(key: key);
 
-  WeatherForecast({required this.weatherForecastResponse});
+  final WeatherForecastResponse? weatherForecastResponse;
+
+  // WeatherForecast({required this.weatherForecastResponse});
 
   @override
   _WeatherForecastState createState() => _WeatherForecastState();
@@ -19,6 +21,8 @@ class _WeatherForecastState extends State<WeatherForecast> {
   Map<int, bool> isExpandedMap = {0: true};
 
   Widget _temperatureText(double temp, double feelsLike) {
+    temp = roundDouble(temp);
+    feelsLike = roundDouble(feelsLike);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -28,6 +32,11 @@ class _WeatherForecastState extends State<WeatherForecast> {
     );
   }
 
+  double roundDouble(double value) {
+    var roundedVal = (value * 10).ceilToDouble();
+    return roundedVal / 10;
+  }
+
   Widget _createExpansionListPanel() {
     return ExpansionPanelList(
       expansionCallback: (int index, bool isExpanded) {
@@ -35,9 +44,9 @@ class _WeatherForecastState extends State<WeatherForecast> {
           isExpandedMap = {index: !isExpanded};
         });
       },
-      children: widget.weatherForecastResponse.forecast
+      children: widget.weatherForecastResponse!.forecast
           .map<ExpansionPanel>((DailyWeather daily) {
-        var curIndex = widget.weatherForecastResponse.forecast.indexOf(daily);
+        var curIndex = widget.weatherForecastResponse!.forecast.indexOf(daily);
         return ExpansionPanel(
           isExpanded: isExpandedMap[curIndex] ?? false,
           headerBuilder: (BuildContext context, bool isExpanded) {
@@ -69,7 +78,7 @@ class _WeatherForecastState extends State<WeatherForecast> {
             ),
             Text(
               date,
-              style: TextStyle(fontSize: 10),
+              style: Theme.of(context).textTheme.bodyText2,
             ),
           ],
         ),
@@ -81,7 +90,7 @@ class _WeatherForecastState extends State<WeatherForecast> {
                 height: 45,
               ),
         Text(
-          '${daily.rain}mm',
+          '${roundDouble(daily.rain)}mm',
           style: TextStyle(
             color: daily.rain > 0 ? Colors.black : Colors.black26,
             fontSize: 10,
@@ -89,8 +98,8 @@ class _WeatherForecastState extends State<WeatherForecast> {
         ),
         WindDirection(
           angle: daily.windDeg,
-          windGust: daily.windGust,
-          windSpeed: daily.windSpeed,
+          windGust: roundDouble(daily.windGust),
+          windSpeed: roundDouble(daily.windSpeed),
         ),
       ],
     );
@@ -115,13 +124,14 @@ class _WeatherForecastState extends State<WeatherForecast> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(daily.temp.max.toString().formatCelcius(),
+                  Text(roundDouble(daily.temp.max).toString().formatCelcius(),
                       style: TextStyle(
                         fontSize: 10,
                         fontStyle: FontStyle.italic,
                         color: Colors.black38,
                       )),
-                  Text('(${daily.temp.min.toString().formatCelcius()})',
+                  Text(
+                      '(${roundDouble(daily.temp.min).toString().formatCelcius()})',
                       style: TextStyle(
                         fontSize: 10,
                         fontStyle: FontStyle.italic,
@@ -131,7 +141,6 @@ class _WeatherForecastState extends State<WeatherForecast> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                // mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     margin: EdgeInsets.all(5),
@@ -242,19 +251,17 @@ class _WeatherForecastState extends State<WeatherForecast> {
     );
   }
 
+  Widget noWeather() {
+    return Text(
+        'Location services are probably not enabled so no weather has been fetched');
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: _createExpansionListPanel(),
+      child: widget.weatherForecastResponse != null
+          ? _createExpansionListPanel()
+          : noWeather(),
     );
-    // return Expanded(
-    //   child: ListView.builder(
-    //     itemCount: widget.weatherForecastResponse.forecast.length,
-    //     shrinkWrap: true,
-    //     itemBuilder: (context, index) {
-    //       return _createForecastCard(index);
-    //     },
-    //   ),
-    // );
   }
 }

@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:weathery/models/weathermodel.dart';
 import 'package:weathery/pages/widgets/forecast.dart';
+import 'package:weathery/pages/widgets/search-location.dart';
+import 'package:weathery/pages/widgets/overlay-spinner.dart';
+import 'package:weathery/services/inherited-weather-service.dart';
 import 'package:weathery/services/weather-service.dart';
 
 class Weather extends StatefulWidget {
@@ -13,20 +17,44 @@ class Weather extends StatefulWidget {
 }
 
 class _WeatherState extends State<Weather> {
-  late WeatherForecastResponse weather;
-  late Map<String, WeatherService> weatherService =
-      ModalRoute.of(context)!.settings.arguments as Map<String, WeatherService>;
-
+  late WeatherForecastResponse? _weather;
+  List<GeocodingResponse> _geCodingList = List.empty();
+  late WeatherService _weatherService;
+  late OverlaySpinner _spinner;
   TextEditingController _textEditingController = TextEditingController();
   FocusNode _focusNode = FocusNode();
 
-  void updateWeatherLocation(String location) async {
-    var ws = weatherService['data'] as WeatherService;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _weatherService = WeatherServiceContainer.of(context);
+    _initSpinnerSubscription();
+  }
+
+  Future<void> searchLocations(String location) async {
     try {
-      // await ws.getWeatherByLocation(location);
-      await ws.getCoordinatesByLocation(location);
+      await _weatherService.getGeolocationsByLocation(location);
       _textEditingController.clear();
-      setState(() => {weather = ws.forecast});
+      setState(() {
+        _geCodingList = _weatherService.geoCodingList;
+      });
+    } catch (e) {
+      // print((e as TypeError).stackTrace);
+      var text = e is HttpException ? e.message : 'Something went wrong';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> updateWeatherLocation(GeocodingResponse location) async {
+    try {
+      await _weatherService.getWeather(location);
+      _textEditingController.clear();
+      setState(() => {_weather = _weatherService.forecast});
     } catch (e) {
       print(e);
       var text = e is HttpException ? e.message : 'Something went wrong';
@@ -39,42 +67,28 @@ class _WeatherState extends State<Weather> {
     }
   }
 
-  _searchField(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(10),
-      child: TextField(
-        focusNode: _focusNode,
-        decoration: InputDecoration(
-          icon: Icon(
-            Icons.search,
-            color: Colors.white,
-          ),
-          labelText: 'Enter a city name',
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.white,
-            ),
-          ),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.white,
-            ),
-          ),
-          labelStyle: TextStyle(
-            color: Colors.white,
-          ),
+  Future<void> getWeatherFromCurrentLocation() async {
+    try {
+      // await _weatherService.initGeoLocatorService();
+      await _weatherService.getLocationByGeoServiceCoordinates(); // fixa
+
+      setState(() => {_weather = _weatherService.forecast});
+    } catch (e) {
+      print(e);
+      var text = e is HttpException ? e.message : 'Something went wrong';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text),
+          backgroundColor: Colors.red,
         ),
-        style: TextStyle(
-          color: Colors.white,
-        ),
-        cursorColor: Colors.red,
-        controller: _textEditingController,
-        onEditingComplete: () => {
-          updateWeatherLocation(_textEditingController.text),
-          _focusNode.unfocus()
-        },
-      ),
-    );
+      );
+    }
+  }
+
+  _initSpinnerSubscription() {
+    _spinner =
+        OverlaySpinner.create(_weatherService.fetchingData.stream, context);
+    _spinner.setupSubscription(setState);
   }
 
   _body() {
@@ -82,9 +96,10 @@ class _WeatherState extends State<Weather> {
       decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: NetworkImage(
-            'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
-          ),
+          image: AssetImage('images/main-background.jpeg'),
+          // image: NetworkImage(
+          //   'https://images.unsplash.com/photo-1581150257735-1c93ea8306ef?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80',
+          // ),
         ),
       ),
       child: Padding(
@@ -92,11 +107,18 @@ class _WeatherState extends State<Weather> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            _searchField(context),
+            // SearchLocation(
+            //   focusNode: _focusNode,
+            //   textEditingController: _textEditingController,
+            //   callbackFn: updateWeatherLocation,
+            // ),
+            // _searchField(context),
             Expanded(
-              child: WeatherForecast(
-                weatherForecastResponse: weather,
-              ),
+              child: _weather != null
+                  ? WeatherForecast(
+                      weatherForecastResponse: _weather,
+                    )
+                  : Text('Please search for a location'),
             ),
           ],
         ),
@@ -106,8 +128,7 @@ class _WeatherState extends State<Weather> {
 
   @override
   Widget build(BuildContext context) {
-    var ws = weatherService['data'] as WeatherService;
-    weather = ws.forecast;
+    _weather = _weatherService.forecast;
     return GestureDetector(
       // This is to enable the keyboard to disappear when tapping outside of it.
       onTap: () {
@@ -117,12 +138,84 @@ class _WeatherState extends State<Weather> {
         }
       },
       child: Scaffold(
+        drawerScrimColor: Colors.black12,
         resizeToAvoidBottomInset: false,
+        endDrawer: _searchDrawer(context),
         appBar: AppBar(
           centerTitle: true,
-          title: Text('Weather for ${ws.geoCoding.name}'),
+          title: Text(
+            'Weather for ${_weatherService.geoCoding.name} (${_weatherService.geoCoding.country})',
+          ),
+          actions: [
+            Builder(builder: (context) {
+              return IconButton(
+                icon: Icon(Icons.search),
+                tooltip: 'Search location',
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              );
+            })
+          ],
         ),
         body: _body(),
+      ),
+    );
+  }
+
+  Drawer _searchDrawer(BuildContext context) {
+    var locationServiceEnabled =
+        _weatherService.geoLocatorService.serviceEnabled;
+    var currentLocation = _weatherService.currentLocation.name;
+    return Drawer(
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColorDark,
+            ),
+            child: SearchLocation(
+              focusNode: _focusNode,
+              textEditingController: _textEditingController,
+              callbackFn: searchLocations,
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColorLight,
+            ),
+            child: ListTile(
+              title: Text(locationServiceEnabled
+                  ? currentLocation
+                  : 'Location service is not enabled on the device'),
+              leading: Icon(Icons.pin_drop),
+              enabled: locationServiceEnabled,
+              onTap: () => {
+                getWeatherFromCurrentLocation(),
+                Navigator.of(context).pop()
+              },
+            ),
+          ),
+          Divider(
+            color: Theme.of(context).dividerColor,
+          ),
+          ListView.builder(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+            itemCount: _geCodingList.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(_geCodingList[index].name),
+                subtitle: Text(_geCodingList[index].country),
+                onTap: () => {
+                  updateWeatherLocation(_geCodingList[index]),
+                  Navigator.of(context).pop()
+                },
+                tileColor: Colors.blueGrey[index * 100],
+              );
+            },
+          )
+        ],
       ),
     );
   }
@@ -131,6 +224,7 @@ class _WeatherState extends State<Weather> {
   void dispose() {
     _textEditingController.dispose();
     _focusNode.dispose();
+    _spinner.disposeSpinner();
     super.dispose();
   }
 }
